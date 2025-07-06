@@ -2,9 +2,100 @@ const express = require('express');
 const { body, query } = require('express-validator');
 const Event = require('../models/Event');
 const { handleValidationErrors, sanitizeInput } = require('../middleware/validate');
-const { optionalAuth } = require('../middleware/auth');
+const { optionalAuth, requireAuth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
+
+// @route   POST /api/events
+// @desc    Create a new event
+// @access  Private (Organizer/Admin only)
+router.post('/', [
+    requireAuth,
+    requireRole(['organizer', 'admin']),
+    body('title').trim().isLength({ min: 3, max: 100 }).withMessage('Title must be between 3 and 100 characters'),
+    body('description').trim().isLength({ min: 10, max: 1000 }).withMessage('Description must be between 10 and 1000 characters'),
+    body('date').isISO8601().withMessage('Invalid date format'),
+    body('venue.name').trim().notEmpty().withMessage('Venue name is required'),
+    body('venue.address').trim().notEmpty().withMessage('Venue address is required'),
+    body('venue.city').trim().notEmpty().withMessage('Venue city is required'),
+    body('venue.capacity').isInt({ min: 1 }).withMessage('Venue capacity must be at least 1'),
+    body('category').isIn(['Concert', 'Sports', 'Conference', 'Workshop', 'Theater', 'Comedy', 'Other']).withMessage('Invalid category'),
+    body('priceTiers').isArray({ min: 1 }).withMessage('At least one price tier is required'),
+    body('priceTiers.*.tier').isIn(['VIP', 'Premium', 'General', 'Student']).withMessage('Invalid price tier'),
+    body('priceTiers.*.price').isFloat({ min: 0 }).withMessage('Price must be a positive number'),
+    body('seatMap').isArray({ min: 1 }).withMessage('At least one seat is required'),
+    handleValidationErrors
+], async (req, res) => {
+    try {
+        const {
+            title,
+            description,
+            date,
+            venue,
+            category,
+            priceTiers,
+            seatMap,
+            status = 'draft',
+            imageUrl,
+            tags
+        } = req.body;
+
+        // Validate that date is in the future
+        const eventDate = new Date(date);
+        if (eventDate <= new Date()) {
+            return res.status(400).json({
+                error: 'Invalid event date',
+                message: 'Event date must be in the future'
+            });
+        }
+
+        // Create event object
+        const eventData = {
+            title: sanitizeInput(title),
+            description: sanitizeInput(description),
+            date: eventDate,
+            venue: {
+                name: sanitizeInput(venue.name),
+                address: sanitizeInput(venue.address),
+                city: sanitizeInput(venue.city),
+                capacity: venue.capacity
+            },
+            category,
+            organizer: req.user.id,
+            priceTiers,
+            seatMap: seatMap.map(seat => ({
+                ...seat,
+                isAvailable: true,
+                isBooked: false
+            })),
+            totalSeats: seatMap.length,
+            availableSeats: seatMap.length,
+            status,
+            imageUrl,
+            tags: tags || []
+        };
+
+        const event = new Event(eventData);
+        await event.save();
+
+        // Populate organizer info for response
+        await event.populate('organizer', 'name email');
+
+        res.status(201).json({
+            success: true,
+            message: 'Event created successfully',
+            data: {
+                event
+            }
+        });
+    } catch (error) {
+        console.error('Create event error:', error);
+        res.status(500).json({
+            error: 'Failed to create event',
+            message: 'Unable to create event at this time'
+        });
+    }
+});
 
 // @route   GET /api/events
 // @desc    Get all events with optional filtering
