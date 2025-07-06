@@ -1,24 +1,27 @@
 {
   "name": "eventspark-api",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "RESTful API for EventsPark - Event Booking & Ticketing Web Application",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed": "node seeder.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["events", "booking", "ticketing", "api", "nodejs", "express"],
+  "author": "Md Hasib Zaman - B01016875",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "bcryptjs": "^3.0.2",
+    "express": "^4.18.2",
+    "mongoose": "^8.0.3",
     "cors": "^2.8.5",
-    "dotenv": "^17.0.1",
-    "express": "^5.1.0",
-    "express-validator": "^7.2.1",
+    "dotenv": "^16.3.1",
+    "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.16.1"
+    "express-validator": "^7.0.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.0.2"
   }
 }
