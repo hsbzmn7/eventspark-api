@@ -2,7 +2,7 @@ const express = require('express');
 const { body, query } = require('express-validator');
 const Event = require('../models/Event');
 const { handleValidationErrors, sanitizeInput } = require('../middleware/validate');
-const { optionalAuth, requireAuth, requireRole } = require('../middleware/auth');
+const { optionalAuth, protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -10,8 +10,8 @@ const router = express.Router();
 // @desc    Create a new event
 // @access  Private (Organizer/Admin only)
 router.post('/', [
-    requireAuth,
-    requireRole(['organizer', 'admin']),
+    protect,
+    authorize('organizer', 'admin'),
     body('title').trim().isLength({ min: 3, max: 100 }).withMessage('Title must be between 3 and 100 characters'),
     body('description').trim().isLength({ min: 10, max: 1000 }).withMessage('Description must be between 10 and 1000 characters'),
     body('date').isISO8601().withMessage('Invalid date format'),
