@@ -1,0 +1,702 @@
+{
+	"info": {
+		"_postman_id": "eventspark-api-automated",
+		"name": "EventsPark API - Automated",
+		"description": "Automated API collection for EventsPark with JWT handling and response automation\n\nBase URL: https://eventspark-api.onrender.com\n\nFeatures:\n- Automatic JWT token extraction and storage\n- Response data extraction to variables\n- Automated test workflows\n- Pre-request scripts for dynamic data",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "🔧 Setup & Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"API is running\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.status).to.eql('OK');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "health"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🔐 Authentication Flow",
+			"item": [
+				{
+					"name": "Register User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Registration successful\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set(\"userId\", response.user._id);",
+									"    pm.collectionVariables.set(\"userEmail\", response.user.email);",
+									"    console.log(\"User registered with ID:\", response.user._id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"testuser@example.com\",\n    \"password\": \"password123\",\n    \"role\": \"user\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Login successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set(\"authToken\", response.token);",
+									"    pm.collectionVariables.set(\"userId\", response.user._id);",
+									"    console.log(\"Login successful, token saved\");",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{userEmail}}\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Get Current User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"User profile retrieved\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "me"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🎪 Event Management",
+			"item": [
+				{
+					"name": "Create Event",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Event created successfully\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set(\"eventId\", response._id);",
+									"    pm.collectionVariables.set(\"eventTitle\", response.title);",
+									"    console.log(\"Event created with ID:\", response._id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Automated Test Event\",\n    \"description\": \"Event created via automated testing\",\n    \"date\": \"2024-12-31T18:00:00.000Z\",\n    \"venue\": {\n        \"name\": \"Test Arena\",\n        \"address\": \"123 Test Street\",\n        \"city\": \"Test City\",\n        \"capacity\": 100\n    },\n    \"category\": \"Concert\",\n    \"priceTiers\": [\n        {\n            \"tier\": \"VIP\",\n            \"price\": 100,\n            \"description\": \"Premium seating\"\n        },\n        {\n            \"tier\": \"General\",\n            \"price\": 50,\n            \"description\": \"Standard seating\"\n        }\n    ],\n    \"seatMap\": [\n        {\n            \"row\": \"A\",\n            \"number\": 1,\n            \"tier\": \"VIP\"\n        },\n        {\n            \"row\": \"A\",\n            \"number\": 2,\n            \"tier\": \"VIP\"\n        },\n        {\n            \"row\": \"B\",\n            \"number\": 1,\n            \"tier\": \"General\"\n        },\n        {\n            \"row\": \"B\",\n            \"number\": 2,\n            \"tier\": \"General\"\n        }\n    ],\n    \"status\": \"published\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/events",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "events"]
+						}
+					}
+				},
+				{
+					"name": "Get All Events",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Events retrieved successfully\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.events && response.events.length > 0) {",
+									"        pm.collectionVariables.set(\"eventId\", response.events[0]._id);",
+									"        console.log(\"First event ID saved:\", response.events[0]._id);",
+									"    }",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/events?page=1&limit=5&status=published",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "events"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "5"},
+								{"key": "status", "value": "published"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Event by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Event details retrieved\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/events/{{eventId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "events", "{{eventId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Available Seats",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Available seats retrieved\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.availableSeats && response.availableSeats.length > 0) {",
+									"        const firstSeat = response.availableSeats[0];",
+									"        pm.collectionVariables.set(\"seatRow\", firstSeat.row);",
+									"        pm.collectionVariables.set(\"seatNumber\", firstSeat.number);",
+									"        pm.collectionVariables.set(\"seatTier\", firstSeat.tier);",
+									"        pm.collectionVariables.set(\"seatPrice\", firstSeat.price);",
+									"        console.log(\"First available seat saved:\", firstSeat);",
+									"    }",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/events/{{eventId}}/seats",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "events", "{{eventId}}", "seats"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📅 Booking Management",
+			"item": [
+				{
+					"name": "Create Booking",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Booking created successfully\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set(\"bookingId\", response._id);",
+									"    pm.collectionVariables.set(\"bookingAmount\", response.totalAmount);",
+									"    console.log(\"Booking created with ID:\", response._id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"eventId\": \"{{eventId}}\",\n    \"seats\": [\n        {\n            \"row\": \"{{seatRow}}\",\n            \"number\": {{seatNumber}},\n            \"tier\": \"{{seatTier}}\",\n            \"price\": {{seatPrice}}\n        }\n    ],\n    \"paymentMethod\": \"credit_card\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "bookings"]
+						}
+					}
+				},
+				{
+					"name": "Get User Bookings",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"User bookings retrieved\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings/my-bookings",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "bookings", "my-bookings"]
+						}
+					}
+				},
+				{
+					"name": "Get Booking by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Booking details retrieved\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings/{{bookingId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "bookings", "{{bookingId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🎫 Ticket Management",
+			"item": [
+				{
+					"name": "Generate Tickets",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Tickets generated successfully\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.tickets && response.tickets.length > 0) {",
+									"        pm.collectionVariables.set(\"ticketId\", response.tickets[0]._id);",
+									"        pm.collectionVariables.set(\"qrCode\", response.tickets[0].qrCode);",
+									"        console.log(\"First ticket ID saved:\", response.tickets[0]._id);",
+									"    }",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bookingId\": \"{{bookingId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/generate",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tickets", "generate"]
+						}
+					}
+				},
+				{
+					"name": "Get User Tickets",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"User tickets retrieved\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/my-tickets",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tickets", "my-tickets"]
+						}
+					}
+				},
+				{
+					"name": "Validate Ticket by QR Code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ticket validation successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"qrCode\": \"{{qrCode}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/validate",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tickets", "validate"]
+						}
+					}
+				},
+				{
+					"name": "Get Ticket by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ticket details retrieved\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/{{ticketId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tickets", "{{ticketId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🔄 Complete Workflow",
+			"item": [
+				{
+					"name": "Full User Journey",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log(\"Starting complete user journey test...\");"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(\"User journey completed successfully!\");",
+									"console.log(\"Generated IDs:\");",
+									"console.log(\"- User ID:\", pm.collectionVariables.get(\"userId\"));",
+									"console.log(\"- Event ID:\", pm.collectionVariables.get(\"eventId\"));",
+									"console.log(\"- Booking ID:\", pm.collectionVariables.get(\"bookingId\"));",
+									"console.log(\"- Ticket ID:\", pm.collectionVariables.get(\"ticketId\"));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "me"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global pre-request script",
+					"console.log('Request to:', pm.request.url);"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test script",
+					"pm.test(\"Response time is less than 5000ms\", function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});",
+					"",
+					"pm.test(\"Response has valid JSON\", function () {",
+					"    pm.response.to.be.json;",
+					"});"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://eventspark-api.onrender.com",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userEmail",
+			"value": "testuser@example.com",
+			"type": "string"
+		},
+		{
+			"key": "eventId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "eventTitle",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "bookingId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "bookingAmount",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ticketId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "qrCode",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "seatRow",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "seatNumber",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "seatTier",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "seatPrice",
+			"value": "",
+			"type": "string"
+		}
+	]
+} 

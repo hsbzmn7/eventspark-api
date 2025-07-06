@@ -9,8 +9,6 @@ dotenv.config();
 // Import routes
 const authRoutes = require('./routes/auth');
 const eventRoutes = require('./routes/events');
-const bookingRoutes = require('./routes/bookings');
-const ticketRoutes = require('./routes/tickets');
 
 const app = express();
 
@@ -30,8 +28,6 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/eventspar
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
-app.use('/api/bookings', bookingRoutes);
-app.use('/api/tickets', ticketRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

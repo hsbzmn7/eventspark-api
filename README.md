@@ -1,156 +1,150 @@
 # EventsPark API
 
-A RESTful API for the EventsPark Event Booking & Ticketing Web Application. This API provides endpoints for event management, seat booking, ticket generation, and user authentication.
+A simple RESTful API for event management with authentication and role-based access control (RBAC).
 
 ## Features
 
-- **Event Management**: Create, read, update, and delete events
-- **Seat Map Selection**: Interactive seat booking with real-time availability
-- **E-Ticket Generation**: Digital tickets with QR codes for event entry
-- **User Authentication**: JWT-based authentication with role-based access control
-- **Booking System**: Complete booking workflow with payment integration
-- **Security**: Input validation, rate limiting, and SQL injection prevention
+- **Authentication**: User registration and login with JWT tokens
+- **RBAC**: Two user roles - `customer` and `organizer`
+- **Event Management**: Create and retrieve events
+- **Authorization**: Only organizers can create events, customers can view events
 
-## Tech Stack
+## User Roles
 
-- **Backend**: Node.js, Express.js
-- **Database**: MongoDB with Mongoose ODM
-- **Authentication**: JWT (JSON Web Tokens)
-- **Validation**: Express-validator
-- **Security**: bcryptjs for password hashing
-
-## Installation
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd eventspark-api
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Create a `.env` file in the root directory:
-```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/eventspark
-JWT_SECRET=your-super-secret-jwt-key-change-in-production
-NODE_ENV=development
-```
-
-4. Start the development server:
-```bash
-npm run dev
-```
+- **Customer**: Can view all events
+- **Organizer**: Can create events and view all events
 
 ## API Endpoints
 
 ### Authentication
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - User login
-- `POST /api/auth/reset-password` - Request password reset
-- `GET /api/auth/me` - Get current user profile
+
+#### Register User
+```
+POST /api/auth/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "password123",
+  "role": "organizer"  // optional, defaults to "customer"
+}
+```
+
+#### Login User
+```
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+```
 
 ### Events
-- `GET /api/events` - Get all events with filtering
-- `GET /api/events/:id` - Get specific event details
-- `GET /api/events/:id/seats` - Get seat map for an event
-- `POST /api/events` - Create a new event (Organizer only)
 
-### Bookings
-- `POST /api/bookings` - Create a new booking
-- `GET /api/bookings` - Get user's bookings
+#### Get All Events
+```
+GET /api/events
+GET /api/events?category=Concert
+GET /api/events?date=2024-12-25
+```
 
-### Tickets
-- `POST /api/tickets/validate` - Validate ticket for event entry
-- `GET /api/tickets/user/:userId` - Get user's tickets
-- `GET /api/tickets/:ticketId` - Get specific ticket details
+#### Get Single Event
+```
+GET /api/events/:id
+```
 
-## Core Features Implementation
+#### Create Event (Organizer only)
+```
+POST /api/events
+Authorization: Bearer <token>
+Content-Type: application/json
 
-### 1. Event Discovery & Calendar View
-- Filter events by date and category
-- Pagination support
-- Real-time availability updates
+{
+  "title": "Summer Concert",
+  "description": "An amazing summer concert",
+  "date": "2024-08-15T19:00:00.000Z",
+  "venue": "Central Park",
+  "category": "Concert",
+  "price": 50.00
+}
+```
 
-### 2. Seat Map Selection & Booking
-- Interactive seat map with availability status
-- Real-time seat booking with conflict prevention
-- Price tier integration
+## Event Categories
 
-### 3. E-Ticket Generation with QR Code
-- Digital ticket generation upon booking
-- QR code data for event entry validation
-- Ticket status tracking (active, used, expired)
+- Concert
+- Sports
+- Conference
+- Workshop
+- Theater
+- Comedy
+- Other
 
-## Security Features
+## Setup
 
-- **JWT Authentication**: Secure token-based authentication
-- **Role-Based Access Control**: User, Organizer, and Admin roles
-- **Input Validation**: Comprehensive request validation
-- **SQL Injection Prevention**: Parameterized queries with Mongoose
-- **Password Hashing**: bcryptjs for secure password storage
-- **Rate Limiting**: Basic rate limiting implementation
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-## Database Schema
+2. Create a `.env` file:
+   ```
+   MONGODB_URI=mongodb://localhost:27017/eventspark
+   JWT_SECRET=your-super-secret-jwt-key
+   PORT=5000
+   NODE_ENV=development
+   ```
 
-### User
-- Basic user information (name, email, password)
-- Role-based access (user, organizer, admin)
-- Account status and password reset functionality
+3. Start the server:
+   ```bash
+   npm start
+   ```
 
-### Event
-- Event details (title, description, date, venue)
-- Seat map with availability tracking
-- Price tiers and capacity management
+4. For development with auto-restart:
+   ```bash
+   npm run dev
+   ```
 
-### Booking
-- User bookings with seat selections
-- Payment status and booking reference
-- Cancellation support
+## Validation Rules
 
-### Ticket
-- Digital tickets with QR codes
-- Validity period and usage tracking
-- Event entry validation
+### Event Creation
+- Title: 3-100 characters
+- Description: 10-500 characters
+- Date: Must be in the future
+- Venue: Required
+- Category: Must be one of the predefined categories
+- Price: Must be a positive number
 
-## Testing
+### User Registration
+- Name: 2-50 characters
+- Email: Valid email format
+- Password: Minimum 6 characters
+- Role: Either "customer" or "organizer" (defaults to "customer")
 
-The API can be tested using Postman or any REST client. Sample requests and responses are documented in the API documentation.
+## Error Handling
 
-## Deployment
+The API returns consistent error responses:
 
-The API is designed to be deployed on platforms like:
-- Render
-- Heroku
-- AWS
-- Railway
+```json
+{
+  "error": "Error type",
+  "message": "Human-readable error message"
+}
+```
 
-## Environment Variables
+## Authentication
 
-- `PORT`: Server port (default: 5000)
-- `MONGODB_URI`: MongoDB connection string
-- `JWT_SECRET`: Secret key for JWT token generation
-- `NODE_ENV`: Environment (development/production)
+Include the JWT token in the Authorization header:
+```
+Authorization: Bearer <your-jwt-token>
+```
 
-## Contributing
+## Health Check
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+```
+GET /api/health
+```
 
-## License
-
-This project is part of the CSCI5709 Advanced Web Development course at Dalhousie University.
-
-## Team
-
-- **Md Hasib Zaman** (B01016875) - Backend Development Lead
-- **Shray Moza** (B00987463) - Frontend Development
-- **Imran Khan** (B00980496) - Authentication & Profile Management
-- **Mency Maheshkumar Christian** (B01021841) - Email & QR Code Functionality
-- **Abhay Lohani** (B00989230) - Payment Integration & Admin Dashboard 
+Returns server status and timestamp. 

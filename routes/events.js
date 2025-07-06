@@ -1,7 +1,8 @@
 const express = require('express');
 const { body, query } = require('express-validator');
 const Event = require('../models/Event');
-const { handleValidationErrors, sanitizeInput, optionalAuth } = require('../middleware/validate');
+const { handleValidationErrors } = require('../middleware/validate');
+const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -9,18 +10,15 @@ const router = express.Router();
 // @desc    Get all events with optional filtering
 // @access  Public
 router.get('/', [
-    optionalAuth,
     query('date').optional().isISO8601().withMessage('Invalid date format'),
     query('category').optional().isIn(['Concert', 'Sports', 'Conference', 'Workshop', 'Theater', 'Comedy', 'Other']),
-    query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-    query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
     handleValidationErrors
 ], async (req, res) => {
     try {
-        const { date, category, page = 1, limit = 10 } = req.query;
+        const { date, category } = req.query;
         
         // Build filter object
-        const filter = { status: 'published' };
+        const filter = {};
         
         if (date) {
             const startDate = new Date(date);
@@ -33,26 +31,13 @@ router.get('/', [
             filter.category = category;
         }
 
-        const skip = (page - 1) * limit;
-        
         const events = await Event.find(filter)
             .populate('organizer', 'name email')
-            .sort({ date: 1 })
-            .skip(skip)
-            .limit(parseInt(limit))
-            .select('-seatMap'); // Don't include detailed seat map in list
-
-        const total = await Event.countDocuments(filter);
+            .sort({ date: 1 });
 
         res.json({
             success: true,
-            data: events,
-            pagination: {
-                page: parseInt(page),
-                limit: parseInt(limit),
-                total,
-                pages: Math.ceil(total / limit)
-            }
+            data: events
         });
     } catch (error) {
         console.error('Get events error:', error);
@@ -66,13 +51,10 @@ router.get('/', [
 // @route   GET /api/events/:id
 // @desc    Get single event by ID
 // @access  Public
-router.get('/:id', [
-    optionalAuth
-], async (req, res) => {
+router.get('/:id', async (req, res) => {
     try {
         const event = await Event.findById(req.params.id)
-            .populate('organizer', 'name email')
-            .select('-seatMap'); // Don't include detailed seat map
+            .populate('organizer', 'name email');
 
         if (!event) {
             return res.status(404).json({
@@ -100,130 +82,43 @@ router.get('/:id', [
     }
 });
 
-// @route   GET /api/events/:id/seats
-// @desc    Get seat map for a specific event
-// @access  Public
-router.get('/:id/seats', [
-    optionalAuth
-], async (req, res) => {
-    try {
-        const event = await Event.findById(req.params.id)
-            .select('seatMap priceTiers title date venue');
-
-        if (!event) {
-            return res.status(404).json({
-                error: 'Event not found',
-                message: 'The requested event does not exist'
-            });
-        }
-
-        if (event.status !== 'published') {
-            return res.status(400).json({
-                error: 'Event not available',
-                message: 'This event is not available for booking'
-            });
-        }
-
-        // Transform seat data for frontend consumption
-        const seats = event.seatMap.map(seat => ({
-            row: seat.row,
-            number: seat.number,
-            tier: seat.tier,
-            available: seat.isAvailable && !seat.isBooked,
-            price: event.priceTiers.find(tier => tier.tier === seat.tier)?.price || 0
-        }));
-
-        res.json({
-            success: true,
-            data: {
-                eventId: event._id,
-                eventTitle: event.title,
-                eventDate: event.date,
-                venue: event.venue,
-                priceTiers: event.priceTiers,
-                seats: seats,
-                totalSeats: event.totalSeats,
-                availableSeats: event.availableSeats
-            }
-        });
-    } catch (error) {
-        console.error('Get seats error:', error);
-        if (error.kind === 'ObjectId') {
-            return res.status(404).json({
-                error: 'Event not found',
-                message: 'The requested event does not exist'
-            });
-        }
-        res.status(500).json({
-            error: 'Failed to fetch seat map',
-            message: 'Unable to retrieve seat information at this time'
-        });
-    }
-});
-
 // @route   POST /api/events
 // @desc    Create a new event (Organizer only)
 // @access  Private
 router.post('/', [
-    sanitizeInput,
+    protect,
+    authorize('organizer'),
     body('title')
         .trim()
         .isLength({ min: 3, max: 100 })
         .withMessage('Title must be between 3 and 100 characters'),
     body('description')
         .trim()
-        .isLength({ min: 10, max: 1000 })
-        .withMessage('Description must be between 10 and 1000 characters'),
+        .isLength({ min: 10, max: 500 })
+        .withMessage('Description must be between 10 and 500 characters'),
     body('date')
         .isISO8601()
         .withMessage('Invalid date format'),
-    body('venue.name')
+    body('venue')
         .trim()
         .notEmpty()
-        .withMessage('Venue name is required'),
-    body('venue.address')
-        .trim()
-        .notEmpty()
-        .withMessage('Venue address is required'),
-    body('venue.city')
-        .trim()
-        .notEmpty()
-        .withMessage('City is required'),
-    body('venue.capacity')
-        .isInt({ min: 1 })
-        .withMessage('Capacity must be a positive integer'),
+        .withMessage('Venue is required'),
     body('category')
         .isIn(['Concert', 'Sports', 'Conference', 'Workshop', 'Theater', 'Comedy', 'Other'])
         .withMessage('Invalid category'),
-    body('priceTiers')
-        .isArray({ min: 1 })
-        .withMessage('At least one price tier is required'),
-    body('priceTiers.*.tier')
-        .isIn(['VIP', 'Premium', 'General', 'Student'])
-        .withMessage('Invalid price tier'),
-    body('priceTiers.*.price')
+    body('price')
         .isFloat({ min: 0 })
         .withMessage('Price must be a positive number'),
     handleValidationErrors
 ], async (req, res) => {
     try {
-        // Check if user is organizer or admin
-        if (!req.user || (req.user.role !== 'organizer' && req.user.role !== 'admin')) {
-            return res.status(403).json({
-                error: 'Access denied',
-                message: 'Only organizers can create events'
-            });
-        }
-
         const {
             title,
             description,
             date,
             venue,
             category,
-            priceTiers,
-            imageUrl,
-            tags
+            price
         } = req.body;
 
         // Validate event date is in the future
@@ -234,45 +129,18 @@ router.post('/', [
             });
         }
 
-        // Generate seat map based on venue capacity
-        const seatMap = [];
-        const rows = Math.ceil(Math.sqrt(venue.capacity));
-        const seatsPerRow = Math.ceil(venue.capacity / rows);
-        
-        let seatNumber = 1;
-        for (let row = 0; row < rows && seatNumber <= venue.capacity; row++) {
-            const rowLetter = String.fromCharCode(65 + row); // A, B, C, etc.
-            for (let col = 1; col <= seatsPerRow && seatNumber <= venue.capacity; col++) {
-                // Determine tier based on row (front rows are VIP/Premium)
-                let tier = 'General';
-                if (row < 2) tier = 'VIP';
-                else if (row < 4) tier = 'Premium';
-                
-                seatMap.push({
-                    row: rowLetter,
-                    number: col,
-                    tier: tier,
-                    isAvailable: true,
-                    isBooked: false
-                });
-                seatNumber++;
-            }
-        }
-
         const event = await Event.create({
             title,
             description,
             date,
             venue,
             category,
-            priceTiers,
-            seatMap,
-            organizer: req.user._id,
-            imageUrl,
-            tags: tags || [],
-            totalSeats: venue.capacity,
-            availableSeats: venue.capacity
+            price,
+            organizer: req.user._id
         });
+
+        // Populate organizer details
+        await event.populate('organizer', 'name email');
 
         res.status(201).json({
             success: true,

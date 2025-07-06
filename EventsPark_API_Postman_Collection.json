@@ -1,0 +1,900 @@
+{
+	"info": {
+		"_postman_id": "eventspark-api-collection",
+		"name": "EventsPark API",
+		"description": "Complete API collection for EventsPark - Event Booking & Ticketing Web Application\n\nBase URL: https://eventspark-api.onrender.com\n\nThis collection includes all endpoints for:\n- User Authentication & Management\n- Event Management\n- Booking Management\n- Ticket Management\n- Health Check",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "API Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"health"
+							]
+						},
+						"description": "Check if the API is running and healthy"
+					},
+					"response": []
+				}
+			],
+			"description": "Basic health check endpoint to verify API status"
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"password123\",\n    \"role\": \"user\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						},
+						"description": "Register a new user account"
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login with email and password to get JWT token"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"me"
+							]
+						},
+						"description": "Get current user profile (requires authentication)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Updated\",\n    \"phone\": \"+1234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"profile"
+							]
+						},
+						"description": "Update user profile information"
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"currentPassword\": \"password123\",\n    \"newPassword\": \"newpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/change-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"change-password"
+							]
+						},
+						"description": "Change user password"
+					},
+					"response": []
+				}
+			],
+			"description": "User authentication and profile management endpoints"
+		},
+		{
+			"name": "Events",
+			"item": [
+				{
+					"name": "Get All Events",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/events?page=1&limit=10&category=Concert&status=published",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"events"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number for pagination"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Number of events per page"
+								},
+								{
+									"key": "category",
+									"value": "Concert",
+									"description": "Filter by event category"
+								},
+								{
+									"key": "status",
+									"value": "published",
+									"description": "Filter by event status"
+								}
+							]
+						},
+						"description": "Get all events with optional filtering and pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Event by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/events/{{eventId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"events",
+								"{{eventId}}"
+							]
+						},
+						"description": "Get detailed information about a specific event"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Event (Organizer)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Summer Music Festival 2024\",\n    \"description\": \"A fantastic summer music festival featuring top artists\",\n    \"date\": \"2024-07-15T18:00:00.000Z\",\n    \"venue\": {\n        \"name\": \"Central Park Arena\",\n        \"address\": \"123 Main Street\",\n        \"city\": \"New York\",\n        \"capacity\": 5000\n    },\n    \"category\": \"Concert\",\n    \"priceTiers\": [\n        {\n            \"tier\": \"VIP\",\n            \"price\": 150,\n            \"description\": \"Premium seating with exclusive access\"\n        },\n        {\n            \"tier\": \"Premium\",\n            \"price\": 100,\n            \"description\": \"Great view with comfortable seating\"\n        },\n        {\n            \"tier\": \"General\",\n            \"price\": 75,\n            \"description\": \"Standard seating\"\n        }\n    ],\n    \"seatMap\": [\n        {\n            \"row\": \"A\",\n            \"number\": 1,\n            \"tier\": \"VIP\"\n        },\n        {\n            \"row\": \"A\",\n            \"number\": 2,\n            \"tier\": \"VIP\"\n        }\n    ],\n    \"imageUrl\": \"https://example.com/event-image.jpg\",\n    \"tags\": [\"music\", \"summer\", \"festival\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/events",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"events"
+							]
+						},
+						"description": "Create a new event (requires organizer role)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Event (Organizer)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Updated Summer Music Festival 2024\",\n    \"description\": \"Updated description for the summer music festival\",\n    \"status\": \"published\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/events/{{eventId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"events",
+								"{{eventId}}"
+							]
+						},
+						"description": "Update an existing event (requires organizer role)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Event (Organizer)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/events/{{eventId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"events",
+								"{{eventId}}"
+							]
+						},
+						"description": "Delete an event (requires organizer role)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Events by Organizer",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/events/organizer/my-events",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"events",
+								"organizer",
+								"my-events"
+							]
+						},
+						"description": "Get all events created by the current organizer"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Available Seats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/events/{{eventId}}/seats",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"events",
+								"{{eventId}}",
+								"seats"
+							]
+						},
+						"description": "Get available seats for a specific event"
+					},
+					"response": []
+				}
+			],
+			"description": "Event management endpoints for creating, reading, updating, and deleting events"
+		},
+		{
+			"name": "Bookings",
+			"item": [
+				{
+					"name": "Create Booking",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"eventId\": \"{{eventId}}\",\n    \"seats\": [\n        {\n            \"row\": \"A\",\n            \"number\": 1,\n            \"tier\": \"VIP\",\n            \"price\": 150\n        }\n    ],\n    \"paymentMethod\": \"credit_card\",\n    \"specialRequests\": \"Please provide wheelchair access\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"bookings"
+							]
+						},
+						"description": "Create a new booking for an event"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Bookings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings/my-bookings?page=1&limit=10&status=confirmed",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"bookings",
+								"my-bookings"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number for pagination"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Number of bookings per page"
+								},
+								{
+									"key": "status",
+									"value": "confirmed",
+									"description": "Filter by booking status"
+								}
+							]
+						},
+						"description": "Get all bookings for the current user"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Booking by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings/{{bookingId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"bookings",
+								"{{bookingId}}"
+							]
+						},
+						"description": "Get detailed information about a specific booking"
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Booking",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"cancellationReason\": \"Change of plans\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings/{{bookingId}}/cancel",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"bookings",
+								"{{bookingId}}",
+								"cancel"
+							]
+						},
+						"description": "Cancel a booking"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Bookings (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings?page=1&limit=10&status=confirmed&eventId={{eventId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"bookings"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number for pagination"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Number of bookings per page"
+								},
+								{
+									"key": "status",
+									"value": "confirmed",
+									"description": "Filter by booking status"
+								},
+								{
+									"key": "eventId",
+									"value": "{{eventId}}",
+									"description": "Filter by event ID"
+								}
+							]
+						},
+						"description": "Get all bookings (admin only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Booking management endpoints for creating and managing event bookings"
+		},
+		{
+			"name": "Tickets",
+			"item": [
+				{
+					"name": "Generate Tickets for Booking",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bookingId\": \"{{bookingId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/generate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets",
+								"generate"
+							]
+						},
+						"description": "Generate e-tickets for a confirmed booking"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Tickets",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/my-tickets?page=1&limit=10&status=active",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets",
+								"my-tickets"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number for pagination"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Number of tickets per page"
+								},
+								{
+									"key": "status",
+									"value": "active",
+									"description": "Filter by ticket status"
+								}
+							]
+						},
+						"description": "Get all tickets for the current user"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Ticket by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/{{ticketId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets",
+								"{{ticketId}}"
+							]
+						},
+						"description": "Get detailed information about a specific ticket"
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Ticket by QR Code",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"qrCode\": \"{{qrCode}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/validate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets",
+								"validate"
+							]
+						},
+						"description": "Validate a ticket using its QR code"
+					},
+					"response": []
+				},
+				{
+					"name": "Mark Ticket as Used",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/{{ticketId}}/use",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets",
+								"{{ticketId}}",
+								"use"
+							]
+						},
+						"description": "Mark a ticket as used (for event entry)"
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Ticket",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"cancellationReason\": \"Event cancelled\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/{{ticketId}}/cancel",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets",
+								"{{ticketId}}",
+								"cancel"
+							]
+						},
+						"description": "Cancel a ticket"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Tickets (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets?page=1&limit=10&status=active&eventId={{eventId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number for pagination"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Number of tickets per page"
+								},
+								{
+									"key": "status",
+									"value": "active",
+									"description": "Filter by ticket status"
+								},
+								{
+									"key": "eventId",
+									"value": "{{eventId}}",
+									"description": "Filter by event ID"
+								}
+							]
+						},
+						"description": "Get all tickets (admin only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Ticket management endpoints for generating, validating, and managing e-tickets"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://eventspark-api.onrender.com",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"type": "string",
+			"description": "JWT token obtained from login endpoint"
+		},
+		{
+			"key": "eventId",
+			"value": "",
+			"type": "string",
+			"description": "Event ID for testing specific event endpoints"
+		},
+		{
+			"key": "bookingId",
+			"value": "",
+			"type": "string",
+			"description": "Booking ID for testing specific booking endpoints"
+		},
+		{
+			"key": "ticketId",
+			"value": "",
+			"type": "string",
+			"description": "Ticket ID for testing specific ticket endpoints"
+		},
+		{
+			"key": "qrCode",
+			"value": "",
+			"type": "string",
+			"description": "QR code for ticket validation testing"
+		}
+	]
+} 
